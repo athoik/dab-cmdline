@@ -104,6 +104,11 @@ void	ensemblenameHandler (std::string name, int Id, void *userData) {
 static
 void	programnameHandler (std::string s, int SId, void * userdata) {
 	fprintf (stderr, "%s (%X) is part of the ensemble\n", s. c_str (), SId);
+	if (serviceIdentifier == -1)
+	{
+		serviceIdentifier = SId;
+		fprintf (stderr, "%s (%X) is selected as default ensemble\n", s.c_str(), SId);
+	}
 }
 
 static
