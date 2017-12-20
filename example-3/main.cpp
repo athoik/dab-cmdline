@@ -107,6 +107,7 @@ void	programnameHandler (std::string s, int SId, void * userdata) {
 	if (serviceIdentifier == -1)
 	{
 		serviceIdentifier = SId;
+		fprintf (stderr, "{\"ps\":\"%s\"}\n", s.c_str());
 		fprintf (stderr, "%s (%X) is selected as default ensemble\n", s.c_str(), SId);
 	}
 }
