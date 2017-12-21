@@ -45,6 +45,7 @@
 #endif
 
 #include	<atomic>
+#include	<thread>
 #ifdef	DATA_STREAMER
 #include	"tcp-server.h"
 #endif
@@ -53,6 +54,7 @@ using std::cerr;
 using std::endl;
 
 void    printOptions (void);	// forward declaration
+void    listener     (void);
 //	we deal with some callbacks, so we have some data that needs
 //	to be accessed from global contexts
 static
@@ -101,6 +103,9 @@ void	ensemblenameHandler (std::string name, int Id, void *userData) {
 	ensembleRecognized. store (true);
 }
 
+std::vector<std::string> programNames;
+std::vector<int> programSIds;
+
 static
 void	programnameHandler (std::string s, int SId, void * userdata) {
 	fprintf (stderr, "%s (%X) is part of the ensemble\n", s. c_str (), SId);
@@ -108,8 +113,15 @@ void	programnameHandler (std::string s, int SId, void * userdata) {
 	{
 		serviceIdentifier = SId;
 		fprintf (stderr, "{\"ps\":\"%s\"}\n", s.c_str());
-		fprintf (stderr, "%s (%X) is selected as default ensemble\n", s.c_str(), SId);
+		fprintf (stderr, "%s (%X) selected as default program\n", s.c_str(), SId);
 	}
+
+	for (std::vector<std::string>::iterator it = programNames.begin();
+		it != programNames.end(); ++it)
+		if (*it == s)
+			return;
+	programNames.push_back(s);
+	programSIds.push_back(SId);
 }
 
 static
@@ -413,6 +425,7 @@ bool	err;
 	}
 
 	run. store (true);
+	std::thread keyboard_listener = std::thread (&listener);
 	if (serviceIdentifier != -1) 
 	   programName = theRadio -> dab_getserviceName (serviceIdentifier);
 	fprintf (stderr, "going to start program %s\n", programName. c_str ());
@@ -443,6 +456,62 @@ void    printOptions (void) {
 	                  -F filename in case the input is from file\n\
                           -S hexnumber use hexnumber to identify program\n\n");
 }
-
                           
+bool	matches (std::string s1, std::string s2) {
+const char *ss1 = s1. c_str ();
+const char *ss2 = s2. c_str ();
 
+	while ((*ss1 != 0) && (*ss2 != 0)) {
+	   if (*ss2 != *ss1)
+	      return false;
+	   ss1 ++;
+	   ss2 ++;
+	}
+	return *ss2 == 0;
+}
+
+void selectNext(void) {
+	int foundIndex = -1;
+
+	for (size_t i=0; i<programNames.size(); i++)
+	{
+		if (matches (programNames [i], programName))
+		{
+			if (i == programNames.size()-1)
+				foundIndex = 0;
+			else
+				foundIndex = i + 1;
+			break;
+		}
+	}
+	if (foundIndex == -1) {
+	   fprintf (stderr, "system error\n");
+	   sighandler (9);
+	}
+//	skip the data services. Slightly dangerous here, may be
+//	add a guard for "only data services" ensembles
+	while (!theRadio -> is_audioService (programNames [foundIndex]))
+	   foundIndex = (foundIndex + 1) % programNames. size ();
+
+	programName = programNames [foundIndex];
+	fprintf (stderr, "we now try to start program %s\n",
+                                                 programName. c_str ());
+        if (theRadio -> dab_service (programName) < 0) {
+           fprintf (stderr, "sorry  we cannot handle service %s\n",
+                                                     programName. c_str ());
+	   sighandler (9);
+        }
+}
+
+void	listener	(void) {
+	fprintf (stderr, "listener is running\n");
+	while (run. load ()) {
+	   char t = getchar ();
+	   switch (t) {
+	      case '\n':  selectNext ();
+	         break;
+	      default:
+	         fprintf (stderr, "unidentified %d (%c)\n", t, t);
+	   }
+	}
+}
