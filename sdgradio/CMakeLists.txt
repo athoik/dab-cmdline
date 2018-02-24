@@ -302,7 +302,7 @@ endif ()
 	     ../library/src/ofdm/freq-interleaver.cpp
 	     ../library/src/backend/viterbi_768/viterbi-768.cpp
 	     ../library/src/backend/viterbi_768/spiral-no-sse.c
-	     ../library/src/backend/viterbi_768/spiral-neon.c
+	     ../library/src/backend/viterbi_768/spiral-sse8-n4.c
 	     ../library/src/backend/fic-handler.cpp
 	     ../library/src/backend/protection.cpp
 	     ../library/src/backend/eep-protection.cpp

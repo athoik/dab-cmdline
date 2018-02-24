@@ -1056,6 +1056,12 @@ FORCE_INLINE __m128i _mm_subs_epu16(__m128i a, __m128i b)
 	return vreinterpretq_m128i_u16(vqsubq_u16(vreinterpretq_u16_m128i(a), vreinterpretq_u16_m128i(b)));
 }
 
+//Subtracts the 8 signed 16-bit integers of bfrom the 8 signed 16-bit integers of a and saturates..
+FORCE_INLINE __m128i _mm_subs_epi16(__m128i a, __m128i b)
+{
+	return vreinterpretq_m128i_s16(vqsubq_s16(vreinterpretq_s16_m128i(a), vreinterpretq_s16_m128i(b)));
+}
+
 //added by hasindu
 //Subtracts the 16 unsigned 8-bit integers of b from the 16 unsigned 8-bit integers of a and saturates.. https://technet.microsoft.com/en-us/subscriptions/yadkxc18(v=vs.90)
 FORCE_INLINE __m128i _mm_subs_epu8(__m128i a, __m128i b)
