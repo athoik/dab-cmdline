@@ -20,7 +20,7 @@ OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ******************************************************************/
 
 #ifdef NEON_AVAILABLE
-#include <SSE2NEON.h>
+#include "SSE2NEON.h"
 #else
 #include <emmintrin.h>
 #include <tmmintrin.h>
